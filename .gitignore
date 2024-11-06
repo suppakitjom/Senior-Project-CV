@@ -1,0 +1,8 @@
+idea/
+data/videos_160
+*.pkl
+*.tar
+__pycache__/
+models/
+YOLO/
+vids/
