@@ -6,3 +6,5 @@ __pycache__/
 models/
 YOLO/
 vids/
+config.py
+speech.wav
