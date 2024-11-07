@@ -1,8 +1,6 @@
 from openai import OpenAI
-from config import OPENAI_API_KEY
-from pathlib import Path
-from pydub import AudioSegment
-from pydub.playback import play
+from config import OPENAI_API_KEY, AZURE_SPEECH_KEY, AZURE_SPEECH_REGION
+import azure.cognitiveservices.speech as speechsdk
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -14,7 +12,7 @@ def generate_golf_feedback(feedback_data):
     
     # Create the request to OpenAI's API for summarization
     completion = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "You are an encouraging golf coach giving simple feedback to a beginner. Make the feedback conversational, avoid using numbers, and keep it very easy to understand. Make sure to keep it very short and to the point."},
             {
@@ -29,16 +27,22 @@ def generate_golf_feedback(feedback_data):
     print("Generated Script:\n", script)
 
     # Generate TTS audio
-    with client.audio.speech.with_streaming_response.create(
-        model="tts-1",
-        voice="echo",
-        input=script,
-    ) as response:
-        response.stream_to_file("speech.wav")
+    speech_config = speechsdk.SpeechConfig(subscription=AZURE_SPEECH_KEY, region=AZURE_SPEECH_REGION)
     
-    # Load and play the audio file
-    audio = AudioSegment.from_mp3("speech.wav")
-    play(audio)
+    voices = [
+        'en-US-Davis:DragonHDLatestNeural',
+        'en-US-Andrew:DragonHDLatestNeural', # me likey
+        'en-US-Andrew2:DragonHDLatestNeural',
+        'en-US-Aria:DragonHDLatestNeural',
+        'en-US-Ava:DragonHDLatestNeural',
+        'en-US-Brian:DragonHDLatestNeural',
+        'en-US-Steffan:DragonHDLatestNeural' # me likey
+    ]
+    speech_config.speech_synthesis_voice_name = voices[-1]
+
+    speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config)
+
+    result = speech_synthesizer.speak_text_async(script).get()
 
 if __name__ == "__main__":
     # Sample feedback data
